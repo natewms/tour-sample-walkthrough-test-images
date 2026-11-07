@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#071726">
+<title>Sample walkthrough (test images)</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#071726;font:14px/1.4 system-ui,-apple-system,'Segoe UI',sans-serif;color:#fff}
+#stage{position:fixed;inset:0}
+.top{position:fixed;left:0;right:0;top:0;display:flex;justify-content:space-between;gap:12px;padding:12px 16px 30px;background:linear-gradient(rgba(7,23,38,.85),rgba(7,23,38,0));pointer-events:none;z-index:3}
+.top>*{pointer-events:auto}
+.brand{display:flex;gap:12px;align-items:center;min-width:0}.brand img{width:48px;height:48px;border-radius:50%;background:#fff;flex:none}
+.brand b{display:block;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.brand span{display:block;color:#9fd9ec;font-size:12.5px}.brand i{display:block;color:#43c3e4;font-size:11px;font-style:normal;font-weight:800;letter-spacing:1px}
+.agent{text-align:right;font-size:12.5px;color:#d7eef7}.agent b{display:block;color:#fff;font-size:14px}.agent a{color:#9fe3fa;text-decoration:none}
+.room{position:fixed;left:50%;top:76px;transform:translateX(-50%);background:rgba(7,23,38,.7);border-radius:20px;padding:5px 16px;font-weight:800;font-size:15px;z-index:3;pointer-events:none;transition:opacity .4s}
+.strip{position:fixed;left:0;right:0;bottom:0;display:flex;gap:8px;padding:30px 12px 12px;overflow-x:auto;background:linear-gradient(rgba(7,23,38,0),rgba(7,23,38,.85));z-index:3;scrollbar-width:thin}
+.strip button{flex:none;width:132px;border:2px solid transparent;border-radius:10px;padding:0;overflow:hidden;background:#0d2333;color:#fff;cursor:pointer;text-align:left}
+.strip button img{display:block;width:100%;height:74px;object-fit:cover}.strip button span{display:block;padding:4px 7px;font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.strip button.on{border-color:#07a9d8}
+.ctl{position:fixed;right:14px;bottom:132px;display:flex;flex-direction:column;gap:8px;z-index:4}
+.ctl button{width:46px;height:46px;border-radius:50%;border:0;background:rgba(7,23,38,.8);color:#fff;font-size:19px;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.4)}.ctl button.on{background:#07a9d8}
+.plan{position:fixed;left:14px;bottom:132px;width:min(300px,40vw);background:rgba(255,255,255,.95);border-radius:12px;padding:6px;z-index:4;box-shadow:0 4px 18px rgba(0,0,0,.5)}
+.plan[hidden]{display:none}.plan .pw{position:relative}.plan img{display:block;width:100%;border-radius:8px}
+.plan .dot{position:absolute;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;background:#07a9d8;border:2px solid #fff;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.5)}
+.plan .dot.on{background:#ffc340;width:20px;height:20px;margin:-10px 0 0 -10px}
+.hint{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(7,23,38,.75);padding:12px 18px;border-radius:14px;font-weight:700;z-index:3;pointer-events:none;transition:opacity .8s}
+.loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#071726;z-index:9;font-weight:700;font-size:16px}
+@media (max-width:640px){.agent{display:none}.strip button{width:104px}.strip button img{height:58px}.ctl{bottom:116px}.plan{bottom:116px}}
+.hlt-hs{position:absolute;left:0;top:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;margin:-22px 0 0 -22px;width:44px;user-select:none}
+.hlt-ring{width:44px;height:44px;border-radius:50%;background:rgba(7,23,38,.55);border:3px solid #fff;display:flex;align-items:center;justify-content:center;color:#fff;font:900 20px system-ui,sans-serif;box-shadow:0 2px 10px rgba(0,0,0,.5);transition:transform .15s,background .15s}
+.hlt-link .hlt-ring span{transform:rotate(-90deg)}
+.hlt-hs:hover .hlt-ring{transform:scale(1.15);background:rgba(7,169,216,.9)}
+.hlt-ring.hlt-i{width:34px;height:34px;font:italic 900 17px Georgia,serif;margin-top:5px}
+.hlt-lbl{margin-top:6px;white-space:nowrap;background:rgba(7,23,38,.82);color:#fff;font:700 12.5px system-ui,sans-serif;padding:3px 9px;border-radius:12px;text-shadow:none;pointer-events:none}
+.hlt-hs.sel .hlt-ring{background:#ffc340;border-color:#ffc340;color:#071726}
+.hlt-info{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-width:min(420px,86vw);background:#fff;color:#132d3e;border-radius:14px;padding:14px 16px;box-shadow:0 10px 40px rgba(0,0,0,.5);font:14px/1.5 system-ui,sans-serif;z-index:5}
+.hlt-info b{font-size:16px}.hlt-info p{margin:6px 0 10px}.hlt-info button{border:0;background:#07a9d8;color:#fff;border-radius:8px;padding:6px 14px;font-weight:700;cursor:pointer}
+
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div class="top"><div class="brand" id="brand"></div><div class="agent" id="agent"></div></div>
+<div class="room" id="roomName"></div>
+<div class="ctl"><button id="bAuto" title="Automatic tour">▶</button><button id="bPlan" title="Floor plan" hidden>🗺</button><button id="bFull" title="Full screen">⛶</button></div>
+<div class="plan" id="plan" hidden><div class="pw"><img id="planImg" alt="Floor plan"></div></div>
+<div class="strip" id="strip"></div>
+<div class="hint" id="hint">Drag to look around · click the arrows to walk</div>
+<div class="loading" id="loading">Loading tour…</div>
+<script>/* HoverLogic3D Walkthrough — 360° tour viewer (WebGL2, no libraries).
+   Used by the Studio editor, the exported tour pages and the MP4 walkthrough renderer.
+   Images are 2:1 equirectangular; yaw 0 = image centre, pitch + = up. Angles in degrees.
+
+   const v = HLTour.create(container, {getImage:scene=>Promise<ImageBitmap|HTMLImageElement>, nadirLogo:img|null, edit:false, preserve:false});
+   await v.setScene(scene, {yaw,pitch,fov}); v.go(sceneId) ; v.view ; v.on('scene'|'click'|'hotspot'|'view', fn)
+*/
+(function(){
+'use strict';
+const D2R=Math.PI/180;
+const VS=`#version 300 es
+in vec2 p;void main(){gl_Position=vec4(p,0.,1.);}`;
+const FS=`#version 300 es
+precision highp float;
+uniform sampler2D t0,t1,tn;uniform float mixv,yaw,pitch,tanh,tanv,lod0,lod1,nadirR,nadirOn,fade;uniform vec2 res;uniform vec3 nadirCol;
+out vec4 o;
+const float PI=3.14159265358979;
+vec3 sampleEq(sampler2D t,vec3 d,float lod){
+  float lon=atan(d.x,d.z),lat=asin(clamp(d.y,-1.,1.));
+  vec2 uv=vec2(lon/(2.*PI)+.5,.5-lat/PI);
+  return textureLod(t,uv,lod).rgb;
+}
+void main(){
+  vec2 n=(gl_FragCoord.xy/res)*2.-1.;
+  vec3 d=normalize(vec3(n.x*tanh,n.y*tanv,1.));
+  float cp=cos(pitch),sp=sin(pitch);d=vec3(d.x,d.y*cp+d.z*sp,-d.y*sp+d.z*cp);
+  float cy=cos(yaw),sy=sin(yaw);d=vec3(d.x*cy+d.z*sy,d.y,-d.x*sy+d.z*cy);
+  vec3 c=sampleEq(t0,d,lod0);
+  if(mixv>0.)c=mix(c,sampleEq(t1,d,lod1),mixv);
+  if(nadirOn>.5&&d.y<-cos(nadirR)){
+    vec2 q=d.xz/sin(nadirR);float r=length(q);
+    vec4 lg=texture(tn,vec2(q.x,-q.y)*.5+.5);
+    vec3 disc=mix(nadirCol,lg.rgb,lg.a*step(r,.92));
+    c=mix(disc,c,smoothstep(.96,1.,r));
+  }
+  o=vec4(c*fade,1.);
+}`;
+function clamp(x,a,b){return Math.max(a,Math.min(b,x));}
+function wrap(y){y=((y+180)%360+360)%360-180;return y;}
+function ease(t){return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;}
+
+function create(container,opts){
+  opts=opts||{};
+  const canvas=document.createElement('canvas');canvas.className='hlt-canvas';
+  canvas.style.cssText='position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:none';
+  canvas.tabIndex=0;
+  container.appendChild(canvas);
+  const layer=document.createElement('div');layer.className='hlt-layer';layer.style.cssText='position:absolute;inset:0;pointer-events:none;overflow:hidden';
+  container.appendChild(layer);
+  const gl=canvas.getContext('webgl2',{antialias:false,preserveDrawingBuffer:!!opts.preserve,alpha:false});
+  if(!gl){container.insertAdjacentHTML('beforeend','<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff">This browser cannot show 360° tours (WebGL 2 is off).</div>');return null;}
+  const sh=(t,s)=>{const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(x));return x;};
+  const prog=gl.createProgram();gl.attachShader(prog,sh(gl.VERTEX_SHADER,VS));gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,FS));gl.linkProgram(prog);gl.useProgram(prog);
+  const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+  const loc=gl.getAttribLocation(prog,'p');gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+  const U={};for(const n of ['t0','t1','tn','mixv','yaw','pitch','tanh','tanv','lod0','lod1','nadirR','nadirOn','fade','res','nadirCol'])U[n]=gl.getUniformLocation(prog,n);
+  gl.uniform1i(U.t0,0);gl.uniform1i(U.t1,1);gl.uniform1i(U.tn,2);
+  const maxTex=gl.getParameter(gl.MAX_TEXTURE_SIZE);
+  function makeTex(img,unit,repeat){
+    const t=gl.createTexture();gl.activeTexture(gl.TEXTURE0+unit);gl.bindTexture(gl.TEXTURE_2D,t);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);
+    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,img);
+    gl.generateMipmap(gl.TEXTURE_2D);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,repeat?gl.REPEAT:gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+    return t;
+  }
+  async function fitImage(img){
+    const w=img.width||img.naturalWidth;
+    if(w<=maxTex)return img;
+    return createImageBitmap(img,{resizeWidth:maxTex,resizeHeight:maxTex/2,resizeQuality:'high'});
+  }
+  // blank nadir texture until a logo is set
+  let nadirTex=null;
+  {const c=document.createElement('canvas');c.width=c.height=2;nadirTex=makeTex(c,2,false);}
+  const S={tour:null,scene:null,sceneB:null,tex0:null,tex0w:1,tex1:null,tex1w:1,mix:0,fade:1,yaw:0,pitch:0,fov:85,hotspots:[],ev:{},anim:null,auto:false,autoT:0,dirty:true,nadir:false,editor:!!opts.edit,limits:true};
+  const cache=new Map();
+  function on(n,f){(S.ev[n]=S.ev[n]||[]).push(f);}
+  function emit(n,d){(S.ev[n]||[]).forEach(f=>{try{f(d);}catch(e){console.error(e);}});}
+  async function textureFor(scene){
+    if(cache.has(scene.id))return cache.get(scene.id);
+    const img=await fitImage(await opts.getImage(scene));
+    gl.activeTexture(gl.TEXTURE3);
+    const t={tex:makeTex(img,3,true),w:img.width||img.naturalWidth};
+    if(img.close)try{img.close();}catch(_){}
+    cache.set(scene.id,t);
+    if(cache.size>6){const k=[...cache.keys()].find(k=>k!==scene.id&&(!S.scene||k!==S.scene.id));if(k){gl.deleteTexture(cache.get(k).tex);cache.delete(k);}}
+    return t;
+  }
+  function forget(id){if(cache.has(id)){gl.deleteTexture(cache.get(id).tex);cache.delete(id);}}
+  function size(){
+    const r=container.getBoundingClientRect(),dpr=opts.pixelRatio||Math.min(window.devicePixelRatio||1,2);
+    const w=Math.max(1,Math.round(r.width*dpr)),h=Math.max(1,Math.round(r.height*dpr));
+    if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;S.dirty=true;}
+  }
+  function setSize(w,h){canvas.width=w;canvas.height=h;S.dirty=true;}
+  function fovs(){ // horizontal fov is the zoom value; vertical follows the aspect
+    const asp=canvas.width/canvas.height;
+    let hf=S.fov;
+    if(asp<1){const vf=S.fov;return {h:2*Math.atan(Math.tan(vf*D2R/2)*asp)/D2R,v:vf};} // portrait: fov is vertical
+    return {h:hf,v:2*Math.atan(Math.tan(hf*D2R/2)/asp)/D2R};
+  }
+  function limits(){
+    const sc=S.scene;if(!sc||!S.limits)return;
+    const f=fovs();
+    const up=sc.pitchUp!=null?sc.pitchUp:90,dn=sc.pitchDown!=null?sc.pitchDown:-90;
+    const slack=10;
+    let hi=up+slack-f.v/2,lo=dn-slack+f.v/2;
+    if(up>=89)hi=90;if(dn<=-89)lo=-90;
+    if(hi<lo){const m=(up+dn)/2;hi=lo=m;}
+    S.pitch=clamp(S.pitch,Math.max(-90,lo),Math.min(90,hi));
+    const hf=sc.hfov||360;
+    if(hf<355){const lim=Math.max(0,hf/2-f.h/2+6);S.yaw=clamp(wrap(S.yaw),-lim,lim);}
+  }
+  function lodFor(w){const f=fovs();return Math.max(0,Math.log2(w*f.h/360/canvas.width));}
+  function draw(){
+    size();limits();
+    gl.viewport(0,0,canvas.width,canvas.height);
+    const f=fovs();
+    gl.uniform2f(U.res,canvas.width,canvas.height);
+    gl.uniform1f(U.yaw,S.yaw*D2R);gl.uniform1f(U.pitch,S.pitch*D2R);
+    gl.uniform1f(U.tanh,Math.tan(f.h*D2R/2));gl.uniform1f(U.tanv,Math.tan(f.v*D2R/2));
+    gl.uniform1f(U.mixv,S.tex1?S.mix:0);gl.uniform1f(U.fade,S.fade);
+    gl.uniform1f(U.lod0,lodFor(S.tex0w));gl.uniform1f(U.lod1,lodFor(S.tex1w));
+    const nd=!!(S.scene&&S.tour&&S.tour.nadir!==false);
+    gl.uniform1f(U.nadirOn,nd?1:0);gl.uniform1f(U.nadirR,(S.tour&&S.tour.nadirSize||17)*D2R);
+    gl.uniform3f(U.nadirCol,0.027,0.09,0.15);
+    gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,S.tex0);
+    gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,S.tex1||S.tex0);
+    gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,nadirTex);
+    if(S.tex0)gl.drawArrays(gl.TRIANGLES,0,3);
+    placeHotspots();
+    S.dirty=false;
+  }
+  // --- hotspots (DOM) ---
+  function project(yaw,pitch){
+    const f=fovs();
+    let x=Math.cos(pitch*D2R)*Math.sin(yaw*D2R),y=Math.sin(pitch*D2R),z=Math.cos(pitch*D2R)*Math.cos(yaw*D2R);
+    const cy=Math.cos(-S.yaw*D2R),sy=Math.sin(-S.yaw*D2R);[x,z]=[x*cy+z*sy,-x*sy+z*cy];
+    const cp=Math.cos(-S.pitch*D2R),sp=Math.sin(-S.pitch*D2R);[y,z]=[y*cp+z*sp,-y*sp+z*cp];
+    if(z<=0.05)return null;
+    const r=canvas.getBoundingClientRect();
+    return {x:(x/z/Math.tan(f.h*D2R/2)*.5+.5)*r.width,y:(.5-y/z/Math.tan(f.v*D2R/2)*.5)*r.height};
+  }
+  function unproject(px,py){
+    const r=canvas.getBoundingClientRect(),f=fovs();
+    let x=(px/r.width*2-1)*Math.tan(f.h*D2R/2),y=(1-py/r.height*2)*Math.tan(f.v*D2R/2),z=1;
+    const cp=Math.cos(S.pitch*D2R),sp=Math.sin(S.pitch*D2R);[y,z]=[y*cp+z*sp,-y*sp+z*cp];
+    const cy=Math.cos(S.yaw*D2R),sy=Math.sin(S.yaw*D2R);[x,z]=[x*cy+z*sy,-x*sy+z*cy];
+    return {yaw:Math.atan2(x,z)/D2R,pitch:Math.atan2(y,Math.hypot(x,z))/D2R};
+  }
+  function buildHotspots(){
+    layer.innerHTML='';S.hotspots=[];
+    if(!S.scene||opts.noHotspots)return;
+    (S.scene.hotspots||[]).forEach((h,i)=>{
+      const el=document.createElement('div');el.className='hlt-hs hlt-'+h.type;el.style.pointerEvents='auto';
+      if(h.type==='link'){const t=S.tour.scenes.find(s=>s.id===h.target);el.innerHTML=`<div class="hlt-ring"><span>➜</span></div><div class="hlt-lbl">${esc(h.label||(t?t.name:'?'))}</div>`;}
+      else el.innerHTML=`<div class="hlt-ring hlt-i"><span>i</span></div><div class="hlt-lbl">${esc(h.title||'Info')}</div>`;
+      el.onclick=e=>{e.stopPropagation();emit('hotspot',{index:i,hotspot:h,el});
+        if(S.editor)return;
+        if(h.type==='link')go(h.target,{via:h});else showInfo(h,el);};
+      layer.appendChild(el);S.hotspots.push({el,h});
+    });
+  }
+  function placeHotspots(){
+    for(const {el,h} of S.hotspots){const p=project(h.yaw,h.pitch||0);
+      if(!p){el.style.display='none';continue;}el.style.display='';el.style.transform=`translate(${p.x}px,${p.y}px)`;}
+  }
+  let infoBox=null;
+  function showInfo(h,el){
+    if(infoBox)infoBox.remove();
+    infoBox=document.createElement('div');infoBox.className='hlt-info';infoBox.style.pointerEvents='auto';
+    infoBox.innerHTML=`<b>${esc(h.title||'')}</b><p>${esc(h.text||'').replace(/\n/g,'<br>')}</p><button>Close</button>`;
+    infoBox.querySelector('button').onclick=()=>{infoBox.remove();infoBox=null;};
+    container.appendChild(infoBox);
+  }
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  // --- scenes ---
+  function setTour(tour){S.tour=tour;S.dirty=true;}
+  async function setScene(scene,view){
+    const t=await textureFor(scene);
+    S.scene=scene;S.tex0=t.tex;S.tex0w=t.w;S.tex1=null;S.mix=0;
+    const v=view||scene.start||{};
+    S.yaw=v.yaw||0;S.pitch=v.pitch||0;S.fov=v.fov||S.fov||85;
+    buildHotspots();S.dirty=true;emit('scene',scene);
+    // warm up the linked rooms
+    if(!opts.noPreload)for(const h of (scene.hotspots||[]))if(h.type==='link'){const s=S.tour.scenes.find(x=>x.id===h.target);if(s)textureFor(s).catch(()=>{});}
+  }
+  let busy=false;
+  async function go(id,o){
+    o=o||{};
+    const sc=S.tour.scenes.find(s=>s.id===id);if(!sc||busy)return;
+    if(S.editor||o.instant){await setScene(sc,o.view);return;}
+    busy=true;
+    try{
+      const t=await textureFor(sc);
+      // turn toward the door, zoom in, crossfade
+      const y0=S.yaw,p0=S.pitch,f0=S.fov,ty=o.via?o.via.yaw:S.yaw,tp=o.via?clamp(o.via.pitch||0,-20,20):S.pitch;
+      const dy=wrap(ty-y0),T0=performance.now(),dur1=o.via?450:0;
+      await new Promise(res=>{function st(){const k=dur1?Math.min(1,(performance.now()-T0)/dur1):1,e=ease(k);
+        S.yaw=y0+dy*e;S.pitch=p0+(tp-p0)*e;S.fov=f0;S.dirty=true;if(k<1)requestAnimationFrame(st);else res();}st();});
+      S.tex1=t.tex;S.tex1w=t.w;
+      const v=o.view||sc.start||{},T1=performance.now(),dur=650,fz=S.fov;
+      await new Promise(res=>{function st(){const k=Math.min(1,(performance.now()-T1)/dur),e=ease(k);
+        S.mix=e;S.fov=fz-(fz*0.25)*e;S.dirty=true;if(k<1)requestAnimationFrame(st);else res();}st();});
+      S.scene=sc;S.tex0=t.tex;S.tex0w=t.w;S.tex1=null;S.mix=0;
+      S.yaw=v.yaw!=null?v.yaw:S.yaw;S.pitch=v.pitch||0;S.fov=v.fov||f0;
+      buildHotspots();S.dirty=true;emit('scene',sc);
+      for(const h of (sc.hotspots||[]))if(h.type==='link'){const s=S.tour.scenes.find(x=>x.id===h.target);if(s)textureFor(s).catch(()=>{});}
+    }finally{busy=false;}
+  }
+  // --- input ---
+  let drag=null,pinch=null;const ptrs=new Map();
+  canvas.addEventListener('pointerdown',e=>{canvas.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(ptrs.size===1)drag={x:e.clientX,y:e.clientY,yaw:S.yaw,pitch:S.pitch,moved:0,t:performance.now()};
+    if(ptrs.size===2){const a=[...ptrs.values()];pinch={d:Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y),fov:S.fov};drag=null;}
+    stopAuto(true);});
+  canvas.addEventListener('pointermove',e=>{if(!ptrs.has(e.pointerId))return;ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(pinch&&ptrs.size===2){const a=[...ptrs.values()];const d=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);S.fov=clamp(pinch.fov*pinch.d/d,30,110);S.dirty=true;return;}
+    if(!drag)return;const r=canvas.getBoundingClientRect(),f=fovs();
+    const dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.moved=Math.max(drag.moved,Math.abs(dx)+Math.abs(dy));
+    S.yaw=drag.yaw-dx/r.width*f.h;S.pitch=drag.pitch+dy/r.height*f.v;S.dirty=true;emit('view',view());});
+  const up=e=>{ptrs.delete(e.pointerId);if(ptrs.size<2)pinch=null;
+    if(drag&&drag.moved<5&&performance.now()-drag.t<600){const r=canvas.getBoundingClientRect();emit('click',Object.assign(unproject(e.clientX-r.left,e.clientY-r.top),{x:e.clientX-r.left,y:e.clientY-r.top}));}
+    drag=null;};
+  canvas.addEventListener('pointerup',up);canvas.addEventListener('pointercancel',up);
+  canvas.addEventListener('wheel',e=>{e.preventDefault();S.fov=clamp(S.fov*Math.exp(e.deltaY*0.0012),30,110);S.dirty=true;emit('view',view());},{passive:false});
+  canvas.addEventListener('keydown',e=>{const k={ArrowLeft:[-5,0],ArrowRight:[5,0],ArrowUp:[0,4],ArrowDown:[0,-4]}[e.key];if(k){S.yaw+=k[0];S.pitch+=k[1];S.dirty=true;e.preventDefault();}
+    if(e.key==='+'||e.key==='=')S.fov=clamp(S.fov-6,30,110);if(e.key==='-')S.fov=clamp(S.fov+6,30,110);S.dirty=true;});
+  // --- autoplay: slow spin, then on to the next room ---
+  let autoTimer=null;
+  function startAuto(){S.auto=true;S.autoT=performance.now();emit('auto',true);}
+  function stopAuto(user){if(!S.auto)return;S.auto=false;emit('auto',false);}
+  let last=performance.now(),spun=0;
+  function loop(now){
+    const dt=Math.min(0.1,(now-last)/1000);last=now;
+    if(S.auto&&!busy&&S.scene){S.yaw+=dt*(S.tour&&S.tour.autoSpeed||9);spun+=dt*(S.tour&&S.tour.autoSpeed||9);S.dirty=true;
+      const per=(S.scene.hfov||360)>=355?300:Math.max(40,(S.scene.hfov||180)-40);
+      if(spun>=per&&S.tour.scenes.length>1){spun=0;const i=S.tour.scenes.indexOf(S.scene);go(S.tour.scenes[(i+1)%S.tour.scenes.length].id);}}
+    else spun=S.auto?spun:0;
+    if(S.dirty)draw();
+    if(!opts.manual)requestAnimationFrame(loop);
+  }
+  if(!opts.manual)requestAnimationFrame(loop);
+  addEventListener('resize',()=>{S.dirty=true;});
+  function view(){return {yaw:Math.round(wrap(S.yaw)*10)/10,pitch:Math.round(S.pitch*10)/10,fov:Math.round(S.fov)};}
+  function setView(v){if(v.yaw!=null)S.yaw=v.yaw;if(v.pitch!=null)S.pitch=v.pitch;if(v.fov)S.fov=v.fov;S.dirty=true;}
+  async function setNadirLogo(img){gl.deleteTexture(nadirTex);nadirTex=makeTex(img,2,false);S.dirty=true;}
+  // --- frame renderer for MP4 video (state: {a,b,mix,yaw,pitch,fov,fade}) ---
+  async function renderState(st){
+    const A=S.tour.scenes.find(s=>s.id===st.a),ta=await textureFor(A);
+    S.scene=A;S.tex0=ta.tex;S.tex0w=ta.w;
+    if(st.b){const tb=await textureFor(S.tour.scenes.find(s=>s.id===st.b));S.tex1=tb.tex;S.tex1w=tb.w;S.mix=st.mix||0;}else{S.tex1=null;S.mix=0;}
+    S.yaw=st.yaw;S.pitch=st.pitch;S.fov=st.fov;S.fade=st.fade==null?1:st.fade;S.limits=false;
+    gl.viewport(0,0,canvas.width,canvas.height);draw();gl.finish();S.limits=true;
+  }
+  return {canvas,layer,gl,on,setTour,setScene,go,forget,startAuto,stopAuto,setNadirLogo,renderState,setSize,project,unproject,
+    get view(){return view();},setView,get scene(){return S.scene;},get auto(){return S.auto;},
+    set limits(b){S.limits=b;},refresh(){buildHotspots();S.dirty=true;},redraw(){S.dirty=true;draw();},fovs};
+}
+window.HLTour={create,wrap};
+})();
+</script>
+<script>window.HL_TOUR={"title":"Sample walkthrough (test images)","address":"","headline":"","branded":true,"agent":{},"logo":"logo.png","nadirLogo":"logo.png","nadir":true,"autoSpeed":9,"floorplan":null,"start":"r7838e7cd","scenes":[{"id":"r7838e7cd","name":"Living room","img":"panos/r7838e7cd.jpg","thumb":"panos/r7838e7cd_thumb.jpg","start":{"yaw":0,"pitch":0,"fov":85},"pitchUp":29.1,"pitchDown":-37,"hfov":360,"hotspots":[{"type":"link","yaw":30,"pitch":-5,"target":"r8327112f"},{"type":"info","yaw":-40,"pitch":0,"title":"New hardwood floors","text":"Installed 2025."}]},{"id":"r8327112f","name":"Family room","img":"panos/r8327112f.jpg","thumb":"panos/r8327112f_thumb.jpg","start":{"yaw":0,"pitch":0,"fov":85},"pitchUp":44.6,"pitchDown":-20.3,"hfov":360,"hotspots":[{"type":"link","yaw":-150,"pitch":-5,"target":"r7838e7cd"},{"type":"link","yaw":30,"pitch":-5,"target":"rf62c5651"}]},{"id":"rf62c5651","name":"Hall","img":"panos/rf62c5651.jpg","thumb":"panos/rf62c5651_thumb.jpg","start":{"yaw":0,"pitch":0,"fov":85},"pitchUp":90,"pitchDown":-90,"hfov":360,"hotspots":[{"type":"link","yaw":-150,"pitch":-5,"target":"r8327112f"},{"type":"link","yaw":30,"pitch":-5,"target":"rccdc0854"}]},{"id":"rccdc0854","name":"Kitchen","img":"panos/rccdc0854.jpg","thumb":"panos/rccdc0854_thumb.jpg","start":{"yaw":0,"pitch":0,"fov":85},"pitchUp":34,"pitchDown":-33.9,"hfov":227,"hotspots":[{"type":"link","yaw":-150,"pitch":-5,"target":"rf62c5651"},{"type":"link","yaw":30,"pitch":-5,"target":"r2db27878"}]},{"id":"r2db27878","name":"Bedroom","img":"panos/r2db27878.jpg","thumb":"panos/r2db27878_thumb.jpg","start":{"yaw":0,"pitch":0,"fov":85},"pitchUp":32.6,"pitchDown":-32.2,"hfov":360,"hotspots":[{"type":"link","yaw":-150,"pitch":-5,"target":"rccdc0854"}]}]};</script>
+<script>
+(function(){
+const T=window.HL_TOUR,$=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+document.title=(T.title||'Virtual tour')+(T.branded?' — Hover Logic':'');
+$('brand').innerHTML=(T.branded&&T.logo?`<img src="${T.logo}" alt="">`:'')+`<div><b>${esc(T.title||'Virtual tour')}</b><span>${esc([T.address,T.headline].filter(Boolean).join(' · '))}</span>${T.branded?'<i>HOVER LOGIC VIRTUAL TOUR</i>':''}</div>`;
+const a=T.agent||{};
+if(T.branded&&(a.name||a.phone||a.email))$('agent').innerHTML=`<b>${esc(a.name)}</b>${a.brokerage?esc(a.brokerage)+'<br>':''}${a.phone?`<a href="tel:${esc(a.phone.replace(/[^\d+]/g,''))}">${esc(a.phone)}</a><br>`:''}${a.email?`<a href="mailto:${esc(a.email)}">${esc(a.email)}</a>`:''}`;
+function loadImg(src){return new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>rej(new Error('image'));i.src=src;});}
+const v=HLTour.create($('stage'),{getImage:async s=>{const i=await loadImg(s.img);return createImageBitmap?await createImageBitmap(i):i;}});
+if(!v){$('loading').remove();return;}
+v.setTour(T);
+if(T.nadirLogo)loadImg(T.nadirLogo).then(i=>v.setNadirLogo(i)).catch(()=>{});
+const strip=$('strip');
+strip.innerHTML=T.scenes.map(s=>`<button data-id="${esc(s.id)}"><img src="${s.thumb}" alt=""><span>${esc(s.name)}</span></button>`).join('');
+strip.querySelectorAll('button').forEach(b=>b.onclick=()=>{v.stopAuto();v.go(b.dataset.id);});
+if(T.floorplan){$('bPlan').hidden=false;$('planImg').src=T.floorplan;$('plan').hidden=innerWidth<640;
+  $('plan').querySelector('.pw').insertAdjacentHTML('beforeend',T.scenes.filter(s=>s.fx!=null).map(s=>`<div class="dot" data-id="${esc(s.id)}" title="${esc(s.name)}" style="left:${s.fx*100}%;top:${s.fy*100}%"></div>`).join(''));
+  $('plan').querySelectorAll('.dot').forEach(d=>d.onclick=()=>{v.stopAuto();v.go(d.dataset.id);});
+  $('bPlan').onclick=()=>{$('plan').hidden=!$('plan').hidden;$('bPlan').classList.toggle('on',!$('plan').hidden);};}
+let nameT=null;
+v.on('scene',s=>{
+  strip.querySelectorAll('button').forEach(b=>{b.classList.toggle('on',b.dataset.id===s.id);if(b.dataset.id===s.id)b.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});});
+  document.querySelectorAll('.dot').forEach(d=>d.classList.toggle('on',d.dataset.id===s.id));
+  const rn=$('roomName');rn.textContent=s.name;rn.style.opacity=1;clearTimeout(nameT);nameT=setTimeout(()=>rn.style.opacity=0,2600);
+  try{history.replaceState(null,'','#room='+encodeURIComponent(s.id));}catch(_){}
+});
+v.on('auto',on=>{$('bAuto').classList.toggle('on',on);$('bAuto').textContent=on?'❚❚':'▶';});
+$('bAuto').onclick=()=>v.auto?v.stopAuto():v.startAuto();
+$('bFull').onclick=()=>{const d=document.documentElement;if(document.fullscreenElement)document.exitFullscreen();else if(d.requestFullscreen)d.requestFullscreen();};
+const want=decodeURIComponent((location.hash.match(/room=([^&]+)/)||[])[1]||'');
+const first=T.scenes.find(s=>s.id===want)||T.scenes.find(s=>s.id===T.start)||T.scenes[0];
+v.setScene(first).then(()=>{$('loading').remove();setTimeout(()=>$('hint').style.opacity=0,3500);}).catch(e=>{$('loading').textContent='Could not load the tour: '+e.message;});
+})();
+</script>
+</body>
+</html>
